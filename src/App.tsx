@@ -1,16 +1,23 @@
-import React from 'react';
-import Map from './components/map.tsx';
+import React, { useState } from 'react';
+import Map from './components/Map.tsx';
 import Navbar from './components/navbar.tsx';
-import './App.css';
+import Slider from './components/Slider.tsx';
 
 function App() {
-    return(
-        <div className="App">
-            <Navbar/>
-            <h1>App Updated: {new Date().toLocaleTimeString()}</h1>
-            <Map/>
-        </div>
-    )
+  const [year, setYear] = useState(2019);
+
+  // Handle the slider change
+  const handleSliderChange = (newYear: number) => {
+    setYear(newYear);
+  };
+
+  return (
+    <div className="App">
+      <Navbar />
+      <Slider year={year} onYearChange={handleSliderChange} />
+      <Map selectedYear={year} />
+    </div>
+  );
 }
 
 export default App;

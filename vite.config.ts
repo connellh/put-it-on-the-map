@@ -10,7 +10,7 @@ export default defineConfig({
   },
   server: {
     watch: {
-      interval: 100,
+      interval: 20,
     },
     hmr: {
       overlay: true,      // Show errors in browser

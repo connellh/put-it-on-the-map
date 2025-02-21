@@ -2,7 +2,6 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { useRef, useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import './map.css';
 export default function Map() {
     // Type the ref as HTMLDivElement (specific to <div>) or null
     const mapContainer = useRef(null);
