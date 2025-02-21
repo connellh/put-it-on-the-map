@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: 'dist',       // Output to dist for production
+    outDir: 'docs',       // Output to docs for production
     emptyOutDir: true,
   },
   server: {
