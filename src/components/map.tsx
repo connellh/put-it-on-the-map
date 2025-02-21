@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import maplibregl, {Layer} from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import {Protocol} from "pmtiles";
