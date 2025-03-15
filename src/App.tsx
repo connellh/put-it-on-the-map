@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Map from './components/Map.tsx';
-import Navbar from './components/Navbar.tsx';
-import Slider from './components/Slider.tsx';
+import Navbar from "@/components/navbar.tsx";
+import Slider from "@/components/Slider.tsx";
+import Map from "@/components/Map.tsx";
 
 function App() {
   const [year, setYear] = useState(2024);
