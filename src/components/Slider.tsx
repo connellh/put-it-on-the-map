@@ -17,7 +17,7 @@ const Slider: React.FC<SliderProps> = ({ year, onYearChange }) => {
         type="range"
         id="year-slider"
         min="2010"
-        max="2020"
+        max="2024"
         step="1"
         value={year}
         onChange={handleSliderChange}

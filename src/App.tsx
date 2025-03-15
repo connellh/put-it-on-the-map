@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import Map from './components/Map.tsx';
-import Navbar from './components/navbar.tsx';
+import Navbar from './components/Navbar.tsx';
 import Slider from './components/Slider.tsx';
 
 function App() {
-  const [year, setYear] = useState(2019);
+  const [year, setYear] = useState(2024);
 
-  // Handle the slider change
   const handleSliderChange = (newYear: number) => {
     setYear(newYear);
   };
