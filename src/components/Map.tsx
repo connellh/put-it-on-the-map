@@ -10,7 +10,16 @@ export interface MapProps {
   selectedYear: number;
 }
 
-export interface MapControl { enableLayersAndSources: any; getAllLayers: any; }
+// Define the shape of a layer object returned by getAllLayers
+interface MapLayer {
+  attributeToggleType?: AttributeToggleType;
+  filterAttributeName?: string;
+}
+
+export interface MapControl {
+  enableLayersAndSources: () => void;
+  getAllLayers: () => Record<string, MapLayer>;
+}
 
 export default function Map(props: MapProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -42,15 +51,19 @@ export default function Map(props: MapProps) {
       map.current!.setZoom(7);
 
       Object.entries(mapControl.current.getAllLayers()).forEach(([id, layer]) => {
-        if (map.current!.getLayer(id)?.visibility === "visible" && layer.attributeToggleType === AttributeToggleType.YEAR) {
+        if (
+          map.current!.getLayer(id)?.visibility === "visible" &&
+          layer.attributeToggleType === AttributeToggleType.YEAR &&
+          layer.filterAttributeName
+        ) {
           map.current!.setFilter(id, ['==', ['get', layer.filterAttributeName], props.selectedYear]);
         }
       });
 
-      const isSmallScreen = () => window.innerWidth < 768; // Mobile threshold
+      const isSmallScreen = () => window.innerWidth < 768;
 
       const popup = new maplibregl.Popup({
-        closeButton: isSmallScreen(), // Show close button on small screens
+        closeButton: isSmallScreen(),
         closeOnClick: false,
         anchor: 'top',
         maxWidth: '300px',
@@ -62,8 +75,8 @@ export default function Map(props: MapProps) {
       const createPopupContent = (properties: any): string => {
         const phraseInterests = typeof properties.phrase_interests_per_capita === 'string'
           ? JSON.parse(properties.phrase_interests_per_capita)
-          : properties.phrase_interests_per_capita;
-        const breakdown = Object.entries(phraseInterests)
+          : properties.phrase_interests_per_capita || {};
+        const breakdown = Object.entries<number>(phraseInterests)
           .map(([phrase, interest]) => `${phrase}: ${(interest || 0).toFixed(2)}`)
           .join('<br>');
 
@@ -77,14 +90,13 @@ export default function Map(props: MapProps) {
         `;
       };
 
-      // Large screen: Hover behavior
       const handleMouseMove = throttle((e: maplibregl.MapMouseEvent) => {
-        if (isSmallScreen()) return; // Skip on small screens
+        if (isSmallScreen()) return;
 
         const features = e.target.queryRenderedFeatures(e.point, { layers: ['corruption_index-layer'] });
         if (features.length > 0) {
           const feature = features[0];
-          const featureId = feature.id;
+          const featureId = feature.id ?? null; // Handle undefined
 
           if (featureId !== currentFeatureId) {
             if (popup.isOpen()) popup.remove();
@@ -109,39 +121,34 @@ export default function Map(props: MapProps) {
         }
       }, 100);
 
-      // Small screen: Click behavior
       const handleClick = (e: maplibregl.MapMouseEvent) => {
-        if (!isSmallScreen()) return; // Skip on large screens
+        if (!isSmallScreen()) return;
 
         const features = e.target.queryRenderedFeatures(e.point, { layers: ['corruption_index-layer'] });
         if (features.length > 0) {
           const feature = features[0];
-          const coordinates = getPopupCoordinates(feature.geometry);
-          const properties = feature.properties;
+          const featureId = feature.id ?? null; // Handle undefined
 
-          if (properties) {
-            if (popup.isOpen() && currentFeatureId === feature.id) {
-              popup.remove(); // Toggle close if clicking same feature
+          if (feature.properties) {
+            if (popup.isOpen() && currentFeatureId === featureId) {
+              popup.remove();
               currentFeatureId = null;
             } else {
-              currentFeatureId = feature.id;
+              currentFeatureId = featureId;
+              const coordinates = getPopupCoordinates(feature.geometry);
+              const properties = feature.properties;
               const content = createPopupContent(properties);
               const element = popup.setLngLat(coordinates)
                 .setHTML(content)
                 .addTo(map.current!).getElement();
               element.style.color = 'black';
-              if (!isSmallScreen()) {
-                element.addEventListener('wheel', (event) => {
-                  map.current?.scrollZoom.wheel(event);
-                });
-              }
             }
           }
         }
       };
 
       const handleMouseLeave = debounce((e: maplibregl.MapMouseEvent) => {
-        if (isSmallScreen()) return; // Skip on small screens
+        if (isSmallScreen()) return;
 
         const features = e.target.queryRenderedFeatures(e.point, { layers: ['corruption_index-layer'] });
         if (features.length === 0 && popup.isOpen()) {
@@ -152,7 +159,7 @@ export default function Map(props: MapProps) {
 
       map.current!.on('mousemove', 'corruption_index-layer', handleMouseMove);
       map.current!.on('click', 'corruption_index-layer', handleClick);
-      map.current!.on('mousemove', handleMouseLeave); // Global mousemove for leave
+      map.current!.on('mousemove', handleMouseLeave);
     });
 
     return () => {
@@ -165,10 +172,13 @@ export default function Map(props: MapProps) {
 
   useEffect(() => {
     if (map.current && map.current.isStyleLoaded() && mapControl.current) {
-      Object.entries(mapControl.current!.getAllLayers()).filter(([_, layer]) => {
-        return layer.attributeToggleType === AttributeToggleType.YEAR
+      Object.entries(mapControl.current.getAllLayers()).filter(([_, layer]) => {
+        return layer.attributeToggleType === AttributeToggleType.YEAR;
       }).forEach(([id, layer]) => {
-        if (map.current!.getLayer(id)?.visibility === "visible") {
+        if (
+          map.current!.getLayer(id)?.visibility === "visible" &&
+          layer.filterAttributeName
+        ) {
           map.current!.setFilter(id, ['==', ['get', layer.filterAttributeName], props.selectedYear]);
         }
       });
