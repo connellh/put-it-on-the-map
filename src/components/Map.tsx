@@ -77,6 +77,7 @@ export default function Map(props: MapProps) {
           ? JSON.parse(properties.phrase_interests_per_capita)
           : properties.phrase_interests_per_capita || {};
         const breakdown = Object.entries<number>(phraseInterests)
+          .sort(([, interestA], [, interestB]) => (interestB || 0) - (interestA || 0)) // Descending order
           .map(([phrase, interest]) => `${phrase}: ${(interest || 0).toFixed(2)}`)
           .join('<br>');
 
@@ -111,11 +112,11 @@ export default function Map(props: MapProps) {
                 .setHTML(content)
                 .addTo(map.current!).getElement();
               element.style.color = 'black';
-              if (!isSmallScreen()) {
-                element.addEventListener('wheel', (event) => {
-                  map.current?.scrollZoom.wheel(event);
-                });
-              }
+              // if (!isSmallScreen()) {
+              //   element.addEventListener('wheel', (event) => {
+              //     map.current?.scrollZoom.wheel(event);
+              //   });
+              // }
             }
           }
         }
